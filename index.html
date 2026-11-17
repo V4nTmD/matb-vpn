@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>MATB VPN</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px 16px 100px;
+      background: #101827;
+      color: #f3f6fc;
+      font-family: Arial, sans-serif;
+    }
+
+    .app { max-width: 520px; margin: auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: #233b5c;
+      color: #80baff;
+      font-size: 25px;
+    }
+
+    h1 { font-size: 22px; margin: 0; }
+    .muted { color: #91a2ba; font-size: 13px; }
+
+    .card {
+      background: #1a2739;
+      border: 1px solid #2a3a50;
+      border-radius: 19px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+      font-size: 23px;
+      font-weight: bold;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      background: #e7b75b;
+      border-radius: 50%;
+    }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 14px;
+      width: 100%;
+      background: #347fdb;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #293b53;
+      color: #dce9fa;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .tile {
+      background: #1a2739;
+      border: 1px solid #2a3a50;
+      border-radius: 16px;
+      padding: 17px;
+      min-height: 115px;
+      cursor: pointer;
+    }
+
+    .tile .emoji { font-size: 24px; }
+    .tile h3 { font-size: 15px; margin: 12px 0 5px; }
+    .tile p { color: #91a2ba; font-size: 12px; margin: 0; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .device {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid #304057;
+    }
+
+    .device:last-child { border-bottom: 0; }
+
+    .device-name { font-weight: bold; margin-bottom: 5px; }
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
+      background: #152236;
+      border-top: 1px solid #2a3a50;
+    }
+
+    .nav button {
+      max-width: 115px;
+      padding: 10px 5px;
+      background: transparent;
+      color: #91a2ba;
+      font-size: 12px;
+    }
+
+    .nav button.active { color: #80baff; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000a;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      width: 100%;
+      max-width: 420px;
+      background: #1a2739;
+      border: 1px solid #344760;
+      border-radius: 20px;
+      padding: 22px;
+    }
+
+    .modal-content h2 { margin-top: 0; }
+
+    .notice {
+      color: #e9c77d;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 14px;
+    }
+
+    .back { margin-bottom: 16px; }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">⬡</div>
+    <div>
+      <h1>MATB VPN</h1>
+      <div class="muted">Твой личный VPN</div>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="section active">
+      <div class="card">
+        <div class="muted">СОСТОЯНИЕ VPN</div>
+        <div class="status">
+          <span class="dot"></span>
+          Не подключён
+        </div>
+        <p class="muted">
+          Подключи устройство, чтобы начать пользоваться MATB VPN.
+        </p>
+        <button onclick="openModal()">Подключить устройство</button>
+      </div>
+
+      <div class="grid">
+        <div class="tile" onclick="showSection('devices')">
+          <div class="emoji">📱</div>
+          <h3>Мои устройства</h3>
+          <p>Управление устройствами</p>
+        </div>
+
+        <div class="tile" onclick="showSection('stats')">
+          <div class="emoji">📊</div>
+          <h3>Статистика</h3>
+          <p>Трафик и подключения</p>
+        </div>
+
+        <div class="tile" onclick="showSection('help')">
+          <div class="emoji">📖</div>
+          <h3>Инструкция</h3>
+          <p>Как подключить VPN</p>
+        </div>
+
+        <div class="tile" onclick="showSection('account')">
+          <div class="emoji">👤</div>
+          <h3>Мой аккаунт</h3>
+          <p>Информация профиля</p>
+        </div>
+
+        <div class="tile" onclick="showSection('admin')">
+          <div class="emoji">🛡️</div>
+          <h3>Админ-панель</h3>
+          <p>Управление MATB VPN</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="devices" class="section">
+      <button class="secondary back" onclick="showSection('home')">← Назад</button>
+      <div class="card">
+        <h2>Мои устройства</h2>
+        <div class="device">
+          <div>
+            <div class="device-name">📱 Мой телефон</div>
+            <div class="muted">Демонстрационная запись</div>
+          </div>
+          <span class="muted">Неактивно</span>
+        </div>
+        <p class="notice">Список пока демонстрационный. Реальные устройства появятся после подключения WireGuard.</p>
+        <button onclick="openModal()">Добавить устройство</button>
+      </div>
+    </section>
+
+    <section id="stats" class="section">
+      <button class="secondary back" onclick="showSection('home')">← Назад</button>
+      <div class="card">
+        <h2>Статистика</h2>
+        <p class="muted">Использовано трафика</p>
+        <h2>—</h2>
+        <p class="muted">Последнее подключение: —</p>
+        <p class="notice">Статистика появится после подключения VPN-сервера.</p>
+      </div>
+    </section>
+
+    <section id="help" class="section">
+      <button class="secondary back" onclick="showSection('home')">← Назад</button>
+      <div class="card">
+        <h2>Инструкция</h2>
+        <p>1. Установи приложение WireGuard на своё устройство.</p>
+        <p>2. Получи конфигурацию от MATB VPN.</p>
+        <p>3. Импортируй конфигурацию в WireGuard.</p>
+        <p>4. Включи VPN.</p>
+        <p class="notice">Пока сервер не настроен, рабочей конфигурации ещё нет.</p>
+      </div>
+    </section>
+
+    <section id="account" class="section">
+      <button class="secondary back" onclick="showSection('home')">← Назад</button>
+      <div class="card">
+        <h2>Мой аккаунт</h2>
+        <p class="muted">Telegram ID</p>
+        <div id="telegram-id">Загрузка...</div>
+        <p class="muted">Имя</p>
+        <div id="telegram-name">Загрузка...</div>
+        <p class="muted">Статус VPN</p>
+        <div>Ожидает подключения сервера</div>
+      </div>
+    </section>
+
+    <section id="admin" class="section">
+      <button class="secondary back" onclick="showSection('home')">← Назад</button>
+      <div class="card">
+        <h2>Админ-панель</h2>
+        <p class="muted">Предварительный интерфейс администратора.</p>
+        <p>Пользователи: данные загрузятся из сервера.</p>
+        <p>Подключения: данные загрузятся из WireGuard.</p>
+        <p>Управление доступом: будет подключено к backend.</p>
+        <p class="notice">
+          Важно: этот экран пока не защищён серверной авторизацией.
+          Не публикуй его как рабочую админ-панель.
+        </p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="showSection('home', this)">⌂<br>Главная</button>
+  <button onclick="showSection('devices', this)">▣<br>Устройства</button>
+  <button onclick="showSection('stats', this)">◷<br>Статистика</button>
+  <button onclick="showSection('account', this)">●<br>Профиль</button>
+</nav>
+
+<div id="modal" class="modal" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h2>Подключение устройства</h2>
+    <p class="muted">
+      Для подключения потребуется приложение WireGuard и персональная конфигурация.
+    </p>
+    <p>Сейчас VPN-сервер ещё не настроен.</p>
+    <button onclick="closeModal()">Понятно</button>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+      document.getElementById("telegram-id").textContent = user.id;
+      document.getElementById("telegram-name").textContent =
+        [user.first_name, user.last_name].filter(Boolean).join(" ");
+    } else {
+      document.getElementById("telegram-id").textContent =
+        "Открой приложение через Telegram";
+      document.getElementById("telegram-name").textContent = "—";
+    }
+  } else {
+    document.getElementById("telegram-id").textContent =
+      "Режим браузера";
+    document.getElementById("telegram-name").textContent = "Тест";
+  }
+
+  function showSection(id, button) {
+    document.querySelectorAll(".section").forEach(section => {
+      section.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll(".nav button").forEach(item => {
+      item.classList.remove("active");
+    });
+
+    if (button) button.classList.add("active");
+  }
+
+  function openModal() {
+    document.getElementById("modal").classList.add("show");
+  }
+
+  function closeModal(event) {
+    document.getElementById("modal").classList.remove("show");
+  }
+</script>
+</body>
+</html>
